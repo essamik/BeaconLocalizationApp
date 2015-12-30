@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="scale"
+        android:title="Scale"
+        android:summary="1m in real life = x pixels on the map"
+        android:inputType="numberDecimal"/>
+</PreferenceScreen>
