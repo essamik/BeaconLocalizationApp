@@ -3,11 +3,14 @@ package ch.swisscom.beaconlocalizationapp;
 import android.graphics.Point;
 import android.util.Log;
 
-import com.estimote.sdk.Beacon;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.swisscom.beaconlocalizationapp.model.BeaconCharacteristics;
+
+/**
+ * List of paired beacon.
+ */
 public class BeaconInventory {
 
     private List<BeaconCharacteristics> mListBeacon;

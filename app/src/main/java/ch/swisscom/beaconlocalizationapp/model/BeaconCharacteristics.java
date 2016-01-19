@@ -1,29 +1,19 @@
-package ch.swisscom.beaconlocalizationapp;
+package ch.swisscom.beaconlocalizationapp.model;
 
 import android.graphics.Point;
 
 public class BeaconCharacteristics {
 
-    private String mKontaktName;
     private String mUuid;
     private int mMajor;
     private int mMinor;
     private Point mPosition;
 
-    public BeaconCharacteristics(String kontaktName, String uuid, int major, int minor, Point position) {
-        mKontaktName = kontaktName;
+    public BeaconCharacteristics(String uuid, int major, int minor, Point position) {
         mUuid = uuid;
         mMajor = major;
         mMinor = minor;
         mPosition = position;
-    }
-
-    public String getKontaktName() {
-        return mKontaktName;
-    }
-
-    public void setKontaktName(String kontaktName) {
-        this.mKontaktName = kontaktName;
     }
 
     public String getUuid() {

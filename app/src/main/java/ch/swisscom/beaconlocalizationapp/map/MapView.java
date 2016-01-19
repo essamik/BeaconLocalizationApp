@@ -1,4 +1,4 @@
-package ch.swisscom.beaconlocalizationapp;
+package ch.swisscom.beaconlocalizationapp.map;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -20,7 +19,12 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.swisscom.beaconlocalizationapp.Constants;
+import ch.swisscom.beaconlocalizationapp.R;
+import ch.swisscom.beaconlocalizationapp.model.BeaconMapObject;
+
 public class MapView extends ImageView implements View.OnTouchListener {
+
 
     interface OnBeaconTouchedListener {
         void onBeaconTouched(BeaconMapObject beaconMapObject);
@@ -28,10 +32,13 @@ public class MapView extends ImageView implements View.OnTouchListener {
 
     private Context mContext;
     private OnBeaconTouchedListener mListener;
+    private boolean mUserPositionMode;
 
     private List<BeaconMapObject> mListMapObjects;
+    private List<Point> mListCentroid;
     private Point mCentroidMultilateration;
     private Point mCentroidTrilateration;
+    private Point mUserPosition;
 
     private Paint mCentroidPaint;
     private Paint mUnpairedPaint;
@@ -42,22 +49,26 @@ public class MapView extends ImageView implements View.OnTouchListener {
     private double mRangedScale;
 
     private final static int RADIUS_CLOSE_POINT = 50;
+    private final static int RANGE_ALPHA_NORMAL = 40;
+    private final static int RANGE_ALPHA_BIG = 25;
+
 
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         mListMapObjects = new ArrayList<>();
+        mListCentroid = new ArrayList<>();
         mBeaconBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_map_beacon);
-        setOnTouchListener(this);
+        super.setOnTouchListener(this);
 
         mCentroidPaint = new Paint();
         mCentroidPaint.setColor(Color.RED);
-        mCentroidPaint.setAlpha(50);
+        mCentroidPaint.setAlpha(255);
         mCentroidPaint.setStrokeWidth(3);
 
         mBeaconRangePaint = new Paint();
         mBeaconRangePaint.setColor(Color.BLUE);
-        mBeaconRangePaint.setAlpha(50);
+        mBeaconRangePaint.setAlpha(RANGE_ALPHA_NORMAL);
         mBeaconRangePaint.setStrokeWidth(3);
 
         mUnpairedPaint = new Paint();
@@ -73,7 +84,6 @@ public class MapView extends ImageView implements View.OnTouchListener {
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         mRangedScale = Double.valueOf(settings.getString(Constants.PREFS_SCALE, "10"));
-
     }
 
     public void setListener(OnBeaconTouchedListener listener) {
@@ -91,60 +101,48 @@ public class MapView extends ImageView implements View.OnTouchListener {
         for (BeaconMapObject mapObj : mListMapObjects) {
             canvas.drawBitmap(mBeaconBitmap, mapObj.getPosition().x - iconSize, mapObj.getPosition().y - iconSize, mapObj.isPaired() ? new Paint() : mUnpairedPaint);
             if (mapObj.getDistance() != 0) {
-                canvas.drawCircle(mapObj.getPosition().x, mapObj.getPosition().y, (float) ( mapObj.getDistance() * mRangedScale), mBeaconRangePaint);
-            }
-
-            //Text
-            if (mapObj.getDistance() != 0) {
+                mBeaconRangePaint.setColor(mCentroidMultilateration == null ? Color.RED : Color.BLUE);
+                mBeaconRangePaint.setAlpha(mapObj.getDistance() > 10 ? RANGE_ALPHA_BIG : RANGE_ALPHA_NORMAL);
+                canvas.drawCircle(mapObj.getPosition().x, mapObj.getPosition().y, (float) (mapObj.getDistance() * mRangedScale), mBeaconRangePaint);
+                //Text
                 canvas.drawText(mapObj.getDistance() + "m", mapObj.getPosition().x - iconSize, mapObj.getPosition().y - iconSize, mTextDistancePaint);
             }
         }
 
-        correctCentroidOutOfBox(mCentroidMultilateration, canvas);
-        correctCentroidOutOfBox(mCentroidTrilateration, canvas);
-
         if (mCentroidMultilateration != null) {
-            canvas.drawCircle(mCentroidMultilateration.x, mCentroidMultilateration.y, (int) mRangedScale/2, mCentroidPaint);
+            mCentroidPaint.setAlpha(255);
+            canvas.drawCircle(mCentroidMultilateration.x, mCentroidMultilateration.y, (int) mRangedScale/4, mCentroidPaint);
+            if (mUserPositionMode) {
+                for (Point pt : mListCentroid) {
+                    mCentroidPaint.setAlpha(50);
+                    canvas.drawCircle(pt.x, pt.y, (int) mRangedScale / 4, mCentroidPaint);
+                }
+            }
         }
 
         if (mCentroidTrilateration != null) {
             Paint paint = new Paint(mCentroidPaint);
             paint.setColor(Color.YELLOW);
-            paint.setAlpha(50);
-            canvas.drawCircle(mCentroidTrilateration.x, mCentroidTrilateration.y, (int) mRangedScale/2, paint);
+            paint.setAlpha(255);
+            canvas.drawCircle(mCentroidTrilateration.x, mCentroidTrilateration.y, (int) mRangedScale/4, paint);
         }
-    }
 
-    private void correctCentroidOutOfBox(Point centroid, Canvas canvas) {
-        if (centroid != null) {
-            Point maxPt = getMaxPoint();
-            Point minPt = getMinPoint();
-            if (centroid.x < minPt.x) {
-                centroid.x = minPt.x;
-            }
-            if (centroid.y < minPt.y) {
-                centroid.y = minPt.y;
-            }
-            if (centroid.x > maxPt.x) {
-                centroid.x = maxPt.x;
-            }
-            if (centroid.y > maxPt.y) {
-                centroid.y = maxPt.y;
-            }
+        //Draw user position
+        if (mUserPosition != null) {
+            Paint paint = new Paint(mCentroidPaint);
+            paint.setColor(Color.GREEN);
+            paint.setAlpha(255);
+            canvas.drawCircle(mUserPosition.x, mUserPosition.y, (int) mRangedScale/5, paint);
         }
     }
 
     public void setCentroidMultilateration(Point centroid) {
+        if (mUserPositionMode) mListCentroid.add(centroid);
         mCentroidMultilateration = centroid;
     }
 
     public void setCentroidTrilateration(Point centroid) {
         mCentroidTrilateration = centroid;
-    }
-
-
-    public void setBeaconsOnMap(List<BeaconMapObject> mapBeacons) {
-        mListMapObjects = mapBeacons;
     }
 
     public void addBeacon(BeaconMapObject mapBeacon) {
@@ -158,7 +156,6 @@ public class MapView extends ImageView implements View.OnTouchListener {
                 mListener.onBeaconTouched(myMapBeacon);
             }
         }
-
     }
 
     @Override
@@ -167,8 +164,16 @@ public class MapView extends ImageView implements View.OnTouchListener {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                onBeaconTouched(pt);
-                invalidate();
+                if (!mUserPositionMode) {
+                    onBeaconTouched(pt);
+                    invalidate();
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (mUserPositionMode) {
+                    mUserPosition = pt;
+                    invalidate();
+                }
                 break;
         }
         return true;
@@ -199,7 +204,6 @@ public class MapView extends ImageView implements View.OnTouchListener {
     }
 
     public void updateBeaconDistanceByPosition(Point position, double distance) {
-        BeaconMapObject foundBeacon = null;
         for (BeaconMapObject myMapBeacon : mListMapObjects) {
             if (myMapBeacon.getPosition().x == position.x && myMapBeacon.getPosition().y == position.y) {
                 myMapBeacon.setDistance(distance);
@@ -208,25 +212,17 @@ public class MapView extends ImageView implements View.OnTouchListener {
         }
     }
 
-    private Point getMaxPoint() {
-        Point maxPt = new Point(mListMapObjects.get(0).getPosition());
-
-        for (BeaconMapObject beacon : mListMapObjects) {
-            if (beacon.getPosition().x > maxPt.x) maxPt.x = beacon.getPosition().x;
-            if (beacon.getPosition().y > maxPt.y) maxPt.y = beacon.getPosition().y;
-        }
-
-        return maxPt;
+    public void setAddUserPositionMode(boolean userPositionMode) {
+        mUserPositionMode = userPositionMode;
+        if (!mUserPositionMode) mListCentroid = new ArrayList<>();
     }
 
-    private Point getMinPoint() {
-        Point minPt = new Point(mListMapObjects.get(0).getPosition());
+    public double gerErrorDelta() {
+        if (mUserPositionMode && mUserPosition != null && mCentroidMultilateration != null) {
+            Point deltaPt = new Point(Math.abs(mUserPosition.x - mCentroidMultilateration.x), Math.abs(mUserPosition.y - mCentroidMultilateration.y));
+            double deltaInPx = Math.sqrt(Math.pow(deltaPt.x, 2) + Math.pow(deltaPt.y, 2));
+            return deltaInPx / mRangedScale;
 
-        for (BeaconMapObject beacon : mListMapObjects) {
-            if (beacon.getPosition().x < minPt.x) minPt.x = beacon.getPosition().x;
-            if (beacon.getPosition().y < minPt.y) minPt.y = beacon.getPosition().y;
-        }
-
-        return minPt;
+        } else return -1;
     }
 }

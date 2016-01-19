@@ -1,7 +1,5 @@
-package ch.swisscom.beaconlocalizationapp;
+package ch.swisscom.beaconlocalizationapp.model;
 
-
-import android.graphics.Point;
 
 import com.estimote.sdk.Utils;
 
@@ -15,9 +13,7 @@ public class MyBeacon implements Serializable {
     private String mAdress;
     private double mRssi;
     private double mDistance;
-    private int mTxPower;
     private double mCalibrationVal;
-    private Point mPosition;
 
     public String getUuid() {
         return mUuid;
@@ -67,14 +63,6 @@ public class MyBeacon implements Serializable {
         this.mDistance = distance;
     }
 
-    public double getTxPower() {
-        return mTxPower;
-    }
-
-    public void setTxPower(int txPower) {
-        this.mTxPower = txPower;
-    }
-
     public double getCalibrationVal() {
         return mCalibrationVal;
     }
@@ -90,14 +78,6 @@ public class MyBeacon implements Serializable {
         myBeacon.mCalibrationVal = baseBeacon.getMeasuredPower();
 
         return myBeacon;
-    }
-
-    public Point getPosition() {
-        return mPosition;
-    }
-
-    public void setPosition(Point position) {
-        mPosition = position;
     }
 }
 

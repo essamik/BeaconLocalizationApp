@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_clear_map"
+        android:title="Clear map"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_set_position"
+        android:title="Set position"
+        android:icon="@drawable/ic_action_set_position"
+        app:showAsAction="always" />
+
+
+    <item
+        android:id="@+id/action_drag_beacon"
+        android:icon="@drawable/ic_map_beacon"
+        android:title="Drag beacon"
+        app:showAsAction="always" />
+
+</menu>

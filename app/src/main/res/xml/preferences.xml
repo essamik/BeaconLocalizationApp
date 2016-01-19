@@ -5,4 +5,11 @@
         android:title="Scale"
         android:summary="1m in real life = x pixels on the map"
         android:inputType="numberDecimal"/>
+
+<EditTextPreference
+    android:key="rssiCorrection"
+    android:title="RSSI Correction"
+    android:summary="Will be added to all the RSSI measured"
+    android:inputType="numberDecimal"/>
 </PreferenceScreen>
+

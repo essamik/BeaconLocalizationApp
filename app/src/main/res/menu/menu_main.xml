@@ -8,15 +8,4 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_clear_map"
-        android:title="Clear map"
-        app:showAsAction="never" />
-
-
-    <item
-        android:id="@+id/action_drag_beacon"
-        android:icon="@drawable/ic_map_beacon"
-        android:title="Drag beacon"
-        app:showAsAction="always" />
 </menu>

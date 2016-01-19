@@ -2,9 +2,9 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <ch.swisscom.beaconlocalizationapp.MapView
+    <ch.swisscom.beaconlocalizationapp.map.MapView
         android:id="@+id/image_map"
-        android:src="@drawable/p31_room_7"
+        android:src="@drawable/swisscom_floor_plan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

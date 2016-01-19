@@ -1,4 +1,4 @@
-package ch.swisscom.beaconlocalizationapp.trilateration;
+package ch.swisscom.beaconlocalizationapp.math;
 
 import org.apache.commons.math3.fitting.leastsquares.MultivariateJacobianFunction;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -8,62 +8,63 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.util.Pair;
 
 /**
- * Models the Trilateration problem. This is a formulation for a nonlinear least
+ * Models the Multilateration problem. This is a formulation for a nonlinear least
  * squares optimizer.
  *
- * @author scott
+ * @author Scott Wiedemann
+ * https://github.com/lemmingapex/Trilateration
  *
  */
-public class TrilaterationFunction implements MultivariateJacobianFunction {
+public class MultilaterationFunction implements MultivariateJacobianFunction {
 
-	protected static final double epsilon = 1E-7;
+	protected static final double EPSILON = 1E-7;
 
 	/**
 	 * Known positions of static nodes
 	 */
-	protected final double positions[][];
+	protected final double mPositions[][];
 
 	/**
-	 * Euclidean distances from static nodes to mobile node
+	 * Euclidean mDistances from static nodes to mobile node
 	 */
-	protected final double distances[];
+	protected final double mDistances[];
 
-	public TrilaterationFunction(double positions[][], double distances[]) {
+	public MultilaterationFunction(double positions[][], double distances[]) {
 
 		if(positions.length < 2) {
- 			throw new IllegalArgumentException("Need at least two positions.");
+ 			throw new IllegalArgumentException("Need at least two mPositions.");
 		}
 
 		if(positions.length != distances.length) {
-			throw new IllegalArgumentException("The number of positions you provided, " + positions.length + ", does not match the number of distances, " + distances.length + ".");
+			throw new IllegalArgumentException("The number of mPositions you provided, " + positions.length + ", does not match the number of mDistances, " + distances.length + ".");
 		}
 
-		// bound distances to strictly positive domain
+		// bound mDistances to strictly positive domain
 		for (int i = 0; i < distances.length; i++) {
-			distances[i] = Math.max(distances[i], epsilon);
+			distances[i] = Math.max(distances[i], EPSILON);
 		}
 
 		int positionDimension = positions[0].length;
 		for (int i = 1; i < positions.length; i++) {
 			if(positionDimension != positions[i].length) {
-				throw new IllegalArgumentException("The dimension of all positions should be the same.");
+				throw new IllegalArgumentException("The dimension of all mPositions should be the same.");
 			}
 		}
 
-		this.positions = positions;
-		this.distances = distances;
+		this.mPositions = positions;
+		this.mDistances = distances;
 	}
 
 	public final double[] getDistances() {
-		return distances;
+		return mDistances;
 	}
 
 	public final double[][] getPositions() {
-		return positions;
+		return mPositions;
 	}
 
 	/**
-	 * Calculate and return Jacobian function Actually return initialized function
+	 * Calculate and return Jacobian function Actually return initialized mFunction
 	 *
 	 * Jacobian matrix, [i][j] at
 	 * J[i][0] = delta_[(x0-xi)^2 + (y0-yi)^2 - ri^2]/delta_[x0] at
@@ -75,10 +76,10 @@ public class TrilaterationFunction implements MultivariateJacobianFunction {
 	public RealMatrix jacobian(RealVector point) {
 		double[] pointArray = point.toArray();
 
-		double[][] jacobian = new double[distances.length][pointArray.length];
+		double[][] jacobian = new double[mDistances.length][pointArray.length];
 		for (int i = 0; i < jacobian.length; i++) {
 			for (int j = 0; j < pointArray.length; j++) {
-				jacobian[i][j] = 2 * pointArray[j] - 2 * positions[i][j];
+				jacobian[i][j] = 2 * pointArray[j] - 2 * mPositions[i][j];
 			}
 		}
 
@@ -92,7 +93,7 @@ public class TrilaterationFunction implements MultivariateJacobianFunction {
 		double[] pointArray = point.toArray();
 
 		// output
-		double[] resultPoint = new double[this.distances.length];
+		double[] resultPoint = new double[this.mDistances.length];
 
 		// compute least squares
 		for (int i = 0; i < resultPoint.length; i++) {

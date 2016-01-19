@@ -1,4 +1,4 @@
-package ch.swisscom.beaconlocalizationapp;
+package ch.swisscom.beaconlocalizationapp.model;
 
 import android.graphics.Point;
 

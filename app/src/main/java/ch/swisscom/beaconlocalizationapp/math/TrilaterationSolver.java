@@ -1,8 +1,8 @@
-package ch.swisscom.beaconlocalizationapp.trilateration;
+package ch.swisscom.beaconlocalizationapp.math;
 
 import android.graphics.Point;
 
-public class MyTrilaterationCalculator {
+public class TrilaterationSolver {
 
     public static Point solve(Point position1, Point position2, Point position3,double d1, double d2, double d3) {
 

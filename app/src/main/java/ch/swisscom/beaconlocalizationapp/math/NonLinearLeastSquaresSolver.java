@@ -1,4 +1,4 @@
-package ch.swisscom.beaconlocalizationapp.trilateration;
+package ch.swisscom.beaconlocalizationapp.math;
 
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresFactory;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
@@ -11,19 +11,20 @@ import org.apache.commons.math3.linear.DiagonalMatrix;
  * Solves a Trilateration problem with an instance of a
  * {@link LeastSquaresOptimizer}
  *
- * @author scott
+ * @author Scott Wiedemann
+ * https://github.com/lemmingapex/Trilateration
  *
  */
 public class NonLinearLeastSquaresSolver {
 
-	protected final TrilaterationFunction function;
-	protected final LeastSquaresOptimizer leastSquaresOptimizer;
+	protected final MultilaterationFunction mFunction;
+	protected final LeastSquaresOptimizer mLeastSquaresOptimizer;
 
 	protected final static int MAXNUMBEROFITERATIONS = 1000;
 
-	public NonLinearLeastSquaresSolver(TrilaterationFunction function, LeastSquaresOptimizer leastSquaresOptimizer) {
-		this.function = function;
-		this.leastSquaresOptimizer = leastSquaresOptimizer;
+	public NonLinearLeastSquaresSolver(MultilaterationFunction function, LeastSquaresOptimizer leastSquaresOptimizer) {
+		this.mFunction = function;
+		this.mLeastSquaresOptimizer = leastSquaresOptimizer;
 	}
 
 	public Optimum solve(double[] target, double[] weights, double[] initialPoint, boolean debugInfo) {
@@ -32,13 +33,13 @@ public class NonLinearLeastSquaresSolver {
 		}
 
 		LeastSquaresProblem leastSquaresProblem = LeastSquaresFactory.create(
-				// function to be optimized
-				function,
+				// Function to be optimized
+				mFunction,
 				// target values at optimal point in least square equation
 				// (x0+xi)^2 + (y0+yi)^2 + ri^2 = target[i]
 				new ArrayRealVector(target, false), new ArrayRealVector(initialPoint, false), new DiagonalMatrix(weights), null, MAXNUMBEROFITERATIONS, MAXNUMBEROFITERATIONS);
 
-		return leastSquaresOptimizer.optimize(leastSquaresProblem);
+		return mLeastSquaresOptimizer.optimize(leastSquaresProblem);
 	}
 
 	public Optimum solve(double[] target, double[] weights, double[] initialPoint) {
@@ -46,13 +47,13 @@ public class NonLinearLeastSquaresSolver {
 	}
 
 	public Optimum solve(boolean debugInfo) {
-		int numberOfPositions = function.getPositions().length;
-		int positionDimension = function.getPositions()[0].length;
+		int numberOfPositions = mFunction.getPositions().length;
+		int positionDimension = mFunction.getPositions()[0].length;
 
 		double[] initialPoint = new double[positionDimension];
 		// initial point, use average of the vertices
-		for (int i = 0; i < function.getPositions().length; i++) {
-			double[] vertex = function.getPositions()[i];
+		for (int i = 0; i < mFunction.getPositions().length; i++) {
+			double[] vertex = mFunction.getPositions()[i];
 			for (int j = 0; j < vertex.length; j++) {
 				initialPoint[j] += vertex[j];
 			}
@@ -70,13 +71,12 @@ public class NonLinearLeastSquaresSolver {
 		}
 
 		double[] target = new double[numberOfPositions];
-		double[] distances = function.getDistances();
+		double[] distances = mFunction.getDistances();
 		double[] weights = new double[target.length];
-		// Weights are inversely proportional to the the square of the distances I think
+
 		for (int i = 0; i < target.length; i++) {
 			target[i] = 0.0;
-			// weights[i] = 1.0;
-			weights[i] = (distances[i] * distances[i]);
+			weights[i] = (1/Math.pow(distances[i], 2));
 		}
 
 		return solve(target, weights, initialPoint, debugInfo);
