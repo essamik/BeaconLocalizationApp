@@ -147,10 +147,10 @@ public class MapFragment extends Fragment implements MapView.OnBeaconTouchedList
                                                         distances.get(2));
             mMap.setCentroidTrilateration(ptCenter);
         }
+         */
 
         mMap.invalidate();
 
-         */
     }
 
     private void saveDelta(double deltaDistance) {
