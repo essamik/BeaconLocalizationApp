@@ -8,7 +8,7 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
 /**
- * Solves a Trilateration problem with an instance of a
+ * Solves a Multilateration problem with an instance of a
  * {@link LeastSquaresOptimizer}
  *
  * @author Scott Wiedemann

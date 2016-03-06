@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final Region ALL_BEACONS_REGION = new Region("myregion", null, null, null);
     private static final int REQUEST_ENABLE_BT = 1234;
 
-    private BeaconManager beaconManager;
+    private BeaconManager mBeaconManager;
 
     private MapFragment mMapFragment;
 
@@ -46,8 +46,9 @@ public class MainActivity extends AppCompatActivity {
         mMapFragment = new MapFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.content_layout, mMapFragment).commit();
 
-        beaconManager = new BeaconManager(this);
-        beaconManager.setRangingListener(new BeaconManager.RangingListener() {
+        mBeaconManager = new BeaconManager(this);
+        //mBeaconManager.setForegroundScanPeriod(350, 0);
+        mBeaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
             public void onBeaconsDiscovered(Region region, final List<Beacon> beacons) {
                 runOnUiThread(new Runnable() {
@@ -68,13 +69,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Check if device supports Bluetooth Low Energy.
-        if (!beaconManager.hasBluetooth()) {
+        if (!mBeaconManager.hasBluetooth()) {
             Toast.makeText(this, "Device does not have Bluetooth Low Energy", Toast.LENGTH_LONG).show();
             return;
         }
 
         // If Bluetooth is not enabled, let user enable it.
-        if (!beaconManager.isBluetoothEnabled()) {
+        if (!mBeaconManager.isBluetoothEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         } else {
@@ -83,10 +84,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void connectToService() {
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+        mBeaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
-                beaconManager.startRanging(ALL_BEACONS_REGION);
+                mBeaconManager.startRanging(ALL_BEACONS_REGION);
             }
         });
     }
@@ -94,11 +95,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        beaconManager.startRanging(ALL_BEACONS_REGION);
+        mBeaconManager.startRanging(ALL_BEACONS_REGION);
     }
 
     @Override protected void onStop() {
-        beaconManager.stopRanging(ALL_BEACONS_REGION);
+        mBeaconManager.stopRanging(ALL_BEACONS_REGION);
         super.onStop();
     }
 
