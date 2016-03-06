@@ -12,11 +12,12 @@ buildscript {
     }
 }
 
+
 allprojects {
     repositories {
         jcenter()
         flatDir {
-            dirs '../../BeaconDistanceEstimator/app/build/outputs/aar'
+            dirs 'libs'
         }
     }
 }

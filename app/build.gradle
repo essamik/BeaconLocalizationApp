@@ -25,6 +25,6 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.estimote:sdk:0.9.1'
     compile 'com.google.android.gms:play-services-location:8.3.0'
-    compile(name:'app-debug', ext:'aar')
+    compile(name:'beacondistanceestimator', ext:'aar')
 
 }
